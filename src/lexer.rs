@@ -73,14 +73,22 @@ impl<'stream> Lexer<'stream> {
                 self.current_line += 1;
                 Ok(None)
             },
-            _ => Ok(Some(PositionalToken {
+            _ => {
+                if pattern::is_longer_candidate(&char) {
+                    if let Some(next) = self.stream.peek() {
+                    }
+                }
+                Ok(Some(PositionalToken {
                 line: cur_line,
                 col: cur_col,
                 length: 0,
                 token: Token::from(char)
-            })),
+                }))
+            },
         }
     }
+
+
     fn get_next_literal(&mut self) -> &[u8] {
         self.stream.restep();
         let start_idx = self.stream.cursor();
@@ -96,6 +104,17 @@ impl<'stream> Lexer<'stream> {
         self.stream.restep();
         let start_idx = self.stream.cursor();
         while pattern::is_numeric(
+            &self.stream.current()
+            ) {
+            self.stream.step();
+        }
+        self.stream.get_slice(start_idx)
+    }
+
+    fn get_next_comment(&mut self) -> &[u8] {
+        self.stream.restep();
+        let start_idx = self.stream.cursor();
+        while !pattern::is_line_terminator(
             &self.stream.current()
             ) {
             self.stream.step();

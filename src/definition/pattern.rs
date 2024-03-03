@@ -18,6 +18,20 @@ pub fn is_literal(char: &u8) -> bool {
      )
 }
 
+pub fn is_longer_candidate(char: &u8) -> bool {
+    matches!(
+        char,
+        b'/'|
+        b'*'|
+        b'+'|
+        b'='|
+        b'!'|
+        b'?'|
+        b'<'|
+        b'>'
+    )
+}
+
 pub fn is_whitespaceish(char: &u8) -> bool {
     matches!(
         char,

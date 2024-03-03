@@ -18,6 +18,14 @@ impl<'a> Stream<'a> {
         self.idx -= 1;
     }
 
+    pub fn peek(&self) -> Option<u8> {
+        if self.idx + 1 >= self.data.len() {
+            None
+        } else {
+            Some(self.data[self.idx + 1])
+        }
+    }
+
     pub fn is_eof(&self) -> bool {
         self.idx >= self.data.len()
     }

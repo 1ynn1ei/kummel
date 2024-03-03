@@ -1,7 +1,6 @@
 pub fn is_numeric(char: &u8) -> bool {
     matches!(
         char,
-        b','|
         b'_'|
         b'.'|
         b'e'|

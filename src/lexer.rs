@@ -1,25 +1,13 @@
 use crate::stream::Stream;
 use crate::definition::Token;
-use crate::definition::Operator;
+use crate::definition::PositionalToken;
 use crate::definition::pattern;
 
 pub enum JSError {
 
 }
 
-type LexerOptionalResult<'stream> = Result<
-                                        Option<
-                                            PositionalToken<'stream>
-                                            >,
-                                    JSError>;
-
-#[derive(Debug)]
-pub struct PositionalToken<'stream> {
-    line: usize,
-    // column: usize,
-    // length: usize,
-    pub token: Token<'stream>
-}
+type LexerOptionalResult<'stream> = Result<Option<PositionalToken<'stream>>,JSError>;
 
 pub struct Lexer<'stream> {
     stream: Stream<'stream>,
@@ -38,9 +26,14 @@ impl<'stream> Lexer<'stream> {
         if self.stream.is_eof() {
             Ok(
                 Some(
-                    Lexer::make_token(Token::EndOfFile, self.current_line)
-                    )
+                    PositionalToken {
+                        line: self.current_line,
+                        col: 0,
+                        length: 0,
+                        token: Token::EndOfFile,
+                    }
                 )
+            )
         } else {
             let char = self.stream.current();
             self.stream.step();
@@ -49,66 +42,43 @@ impl<'stream> Lexer<'stream> {
     }
 
     pub fn ruleset(&mut self, char: u8) -> LexerOptionalResult {
+        let cur_line = self.current_line;
+        let cur_col = 0;
         match char {
             b'a'..=b'z' | b'A'..=b'Z' => {
                 let keyword = std::str::from_utf8(
                     self.get_next_literal()
                     ).unwrap();
-                Ok(
-                    Some(
-                        self.string_into_keyword(keyword)
-                        )
-                    )
+                Ok(Some(PositionalToken {
+                    line: cur_line,
+                    col: cur_col,
+                    length: 0,
+                    token: Token::from(keyword)
+                }))
             },
             b'0'..=b'9' => {
                 let literal = std::str::from_utf8(
                     self.get_next_numeric()
                     ).unwrap();
-                Ok(
-                    Some(
-                        Lexer::make_token(
-                            Token::Literal(literal), 
-                            self.current_line)
-                        )
-                    )
+                Ok(Some(PositionalToken {
+                    line: cur_line,
+                    col: cur_col,
+                    length: 0,
+                    token: Token::from(literal)
+                }))
             },
-            b'(' => Ok(
-                    Some(
-                        Lexer::make_token(Token::LeftParen, self.current_line)
-                        )
-                    ),
-            b')' => Ok(
-                    Some(
-                        Lexer::make_token(Token::RightParen, self.current_line)
-                        )
-                    ),
-            b'{' => Ok(
-                    Some(
-                        Lexer::make_token(Token::LeftCurly, self.current_line)
-                        )
-                    ),
-            b'}' => Ok(
-                    Some(
-                        Lexer::make_token(Token::RightCurly, self.current_line)
-                        )
-                    ),
-            b'+' => Ok(
-                    Some(
-                        Lexer::make_token(Token::Plus, self.current_line)
-                        )
-                    ),
-            b' ' |
+            b' '|
             b'\t' => Ok(None),
             b'\n' => {
                 self.current_line += 1;
                 Ok(None)
             },
-            b';' => Ok(
-                    Some(
-                        Lexer::make_token(Token::Semicolon, self.current_line)
-                        )
-                    ),
-            _ => todo!()
+            _ => Ok(Some(PositionalToken {
+                line: cur_line,
+                col: cur_col,
+                length: 0,
+                token: Token::from(char)
+            })),
         }
     }
     fn get_next_literal(&mut self) -> &[u8] {
@@ -131,32 +101,5 @@ impl<'stream> Lexer<'stream> {
             self.stream.step();
         }
         self.stream.get_slice(start_idx)
-    }
-
-    fn string_into_keyword(&self, keyword: &'stream str) -> PositionalToken {
-        match keyword {
-            "function" => {
-                Lexer::make_token(
-                    Token::Function,
-                    self.current_line
-                    )
-            },
-            "return" => {
-                Lexer::make_token(
-                    Token::Return,
-                    self.current_line
-                    )
-            },
-            _ => {
-                Lexer::make_token(
-                    Token::Identifier(keyword),
-                    self.current_line
-                    )
-            }
-        }
-    }
-
-    fn make_token(token: Token, line: usize) -> PositionalToken {
-        PositionalToken { token, line }
     }
 }

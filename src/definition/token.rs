@@ -1,73 +1,57 @@
-// Operator is more of a grammar thing
-// we should leave that out of token and go into
-// parsing 
 #[derive(Debug)]
-pub enum Operator {
-    Delete,
-    Void,
-    Typeof,
-    Plus, /* converts to Number, not addition */
-    Minus, /* converts to Negative Number, not subtraction */
-    BitwiseNot,
-    LogicalNot,
-    Await,
-    Exponential,
-    Multiply,
-    Add,
-    Subtract,
-    Divide,
-    Remainder,
-    LessThan,
-    GreaterThan,
-    LessThanOrEqual,
-    GreaterThanOrEqual,
-    Instanceof,
-    Equality,
-    Inequality,
-    StrictEquality,
-    StrictInequality,
-    BitwiseLeftShift,
-    BitwiseRightShift,
-    BitwiseUnsignedRightShift,
-    BitwiseAnd,
-    BitwiseOr,
-    BitwiseXor,
-    LogicalAnd,
-    LogicalOr,
-    NullishCoalesce,
-    Assignment,
-    AssignmentMultiply,
-    AssignmentDivide,
-    AssignmentRemainder,
-    AssignmentAdd,
-    AssignmentSubtract,
-    AssignmentLeftShift,
-    AssignmentRightShift,
-    AssignmentUnsignedRightShift,
-    AssignmentBitwiseAnd,
-    AssignmentBitwiseOr,
-    AssignmentBitwiseXor,
-    AssignmentExponate,
-    AssignmentLogicalAnd,
-    AssignmentLogicalOr,
-    AssignmentNullishCoalesce,
-    Yield,
-    Comma,
-    Spread,
+pub struct PositionalToken<'a> {
+    pub line: usize,
+    pub col: usize,
+    pub length: usize,
+    pub token: Token<'a>,
 }
 
 #[derive(Debug)]
-pub enum Token<'stream> {
+pub enum Token<'a> {
+    Literal(&'a str),
+    Unknown(u8),
     EndOfFile,
     Function,
     Return,
+    Let,
+    Var,
+    Const,
     RightCurly,
     LeftCurly,
     LeftParen,
     RightParen,
-    Identifier(&'stream str),
-    Literal(&'stream str),
     Semicolon,
     Plus,
     Minus,
 }
+
+impl<'a> From<u8> for Token<'a> {
+    fn from(c: u8) -> Self {
+        match c {
+            b'{' => Token::LeftCurly,
+            b'(' => Token::LeftParen,
+            b'}' => Token::RightCurly,
+            b')' => Token::RightParen,
+            b'+' => Token::Plus,
+            b'-' => Token::Minus,
+            b';' => Token::Semicolon,
+            _ =>    Token::Unknown(c), 
+        }
+    }
+}
+
+impl<'a> From<&'a str> for Token<'a> {
+    fn from(word: &'a str) -> Self {
+        match word {
+            "function" => Token::Function,
+            "return" => Token::Return,
+            "let" => Token::Let,
+            "var" => Token::Var,
+            "const" => Token::Const,
+            _ => Token::Literal(word)
+        }
+    }
+}
+
+
+

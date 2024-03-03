@@ -15,7 +15,7 @@ type LexerOptionalResult<'stream> = Result<
 
 #[derive(Debug)]
 pub struct PositionalToken<'stream> {
-    // line: usize,
+    line: usize,
     // column: usize,
     // length: usize,
     pub token: Token<'stream>
@@ -23,12 +23,14 @@ pub struct PositionalToken<'stream> {
 
 pub struct Lexer<'stream> {
     stream: Stream<'stream>,
+    current_line: usize,
 }
 
 impl<'stream> Lexer<'stream> {
     pub fn new(data: &'stream Vec<u8>) -> Self {
         Self {
             stream: Stream::new(data),
+            current_line: 1
         }
     }
 
@@ -36,7 +38,7 @@ impl<'stream> Lexer<'stream> {
         if self.stream.is_eof() {
             Ok(
                 Some(
-                    Lexer::make_token(Token::EndOfFile)
+                    Lexer::make_token(Token::EndOfFile, self.current_line)
                     )
                 )
         } else {
@@ -54,7 +56,7 @@ impl<'stream> Lexer<'stream> {
                     ).unwrap();
                 Ok(
                     Some(
-                        Lexer::string_into_keyword(keyword)
+                        self.string_into_keyword(keyword)
                         )
                     )
             },
@@ -64,43 +66,46 @@ impl<'stream> Lexer<'stream> {
                     ).unwrap();
                 Ok(
                     Some(
-                        Lexer::make_token(Token::Literal(literal))
+                        Lexer::make_token(
+                            Token::Literal(literal), 
+                            self.current_line)
                         )
                     )
             },
             b'(' => Ok(
                     Some(
-                        Lexer::make_token(Token::LeftParen)
+                        Lexer::make_token(Token::LeftParen, self.current_line)
                         )
                     ),
             b')' => Ok(
                     Some(
-                        Lexer::make_token(Token::RightParen)
+                        Lexer::make_token(Token::RightParen, self.current_line)
                         )
                     ),
             b'{' => Ok(
                     Some(
-                        Lexer::make_token(Token::LeftCurly)
+                        Lexer::make_token(Token::LeftCurly, self.current_line)
                         )
                     ),
             b'}' => Ok(
                     Some(
-                        Lexer::make_token(Token::RightCurly)
+                        Lexer::make_token(Token::RightCurly, self.current_line)
                         )
                     ),
             b'+' => Ok(
                     Some(
-                        Lexer::make_token(Token::Plus)
+                        Lexer::make_token(Token::Plus, self.current_line)
                         )
                     ),
             b' ' |
-            b'\t'|
+            b'\t' => Ok(None),
             b'\n' => {
+                self.current_line += 1;
                 Ok(None)
             },
             b';' => Ok(
                     Some(
-                        Lexer::make_token(Token::Semicolon)
+                        Lexer::make_token(Token::Semicolon, self.current_line)
                         )
                     ),
             _ => todo!()
@@ -128,27 +133,30 @@ impl<'stream> Lexer<'stream> {
         self.stream.get_slice(start_idx)
     }
 
-    fn string_into_keyword(keyword: &'stream str) -> PositionalToken {
+    fn string_into_keyword(&self, keyword: &'stream str) -> PositionalToken {
         match keyword {
             "function" => {
-                PositionalToken {
-                    token: Token::Function 
-                }
+                Lexer::make_token(
+                    Token::Function,
+                    self.current_line
+                    )
             },
             "return" => {
-                PositionalToken {
-                    token: Token::Return
-                }
+                Lexer::make_token(
+                    Token::Return,
+                    self.current_line
+                    )
             },
             _ => {
-                PositionalToken {
-                    token: Token::Identifier(keyword)
-                }
+                Lexer::make_token(
+                    Token::Identifier(keyword),
+                    self.current_line
+                    )
             }
         }
     }
 
-    fn make_token(token: Token) -> PositionalToken {
-        PositionalToken { token }
+    fn make_token(token: Token, line: usize) -> PositionalToken {
+        PositionalToken { token, line }
     }
 }

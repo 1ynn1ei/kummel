@@ -73,17 +73,33 @@ impl<'stream> Lexer<'stream> {
                 self.current_line += 1;
                 Ok(None)
             },
+            b'(' => Ok(Some(PositionalToken {
+                        line: cur_line,
+                        col: cur_col,
+                        length: 0,
+                        token: Token::LeftParen
+                    })),
+            b')' => Ok(Some(PositionalToken {
+                        line: cur_line,
+                        col: cur_col,
+                        length: 0,
+                        token: Token::RightParen
+                    })),
             _ => {
-                if pattern::is_longer_candidate(&char) {
-                    if let Some(next) = self.stream.peek() {
-                    }
+                if pattern::is_operator_candidate(&char) {
+                    let operator = std::str::from_utf8(
+                        self.get_next_operator()
+                        ).unwrap();
+                    Ok(Some(PositionalToken {
+                    line: cur_line,
+                    col: cur_col,
+                    length: 0,
+                    token: Token::from(operator)
+                    }))
+                } else {
+                    println!("{}", char);
+                    todo!()
                 }
-                Ok(Some(PositionalToken {
-                line: cur_line,
-                col: cur_col,
-                length: 0,
-                token: Token::from(char)
-                }))
             },
         }
     }
@@ -104,6 +120,17 @@ impl<'stream> Lexer<'stream> {
         self.stream.restep();
         let start_idx = self.stream.cursor();
         while pattern::is_numeric(
+            &self.stream.current()
+            ) {
+            self.stream.step();
+        }
+        self.stream.get_slice(start_idx)
+    }
+
+    fn get_next_operator(&mut self) -> &[u8] {
+        self.stream.restep();
+        let start_idx = self.stream.cursor();
+        while pattern::is_operator_candidate(
             &self.stream.current()
             ) {
             self.stream.step();

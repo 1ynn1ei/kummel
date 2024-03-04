@@ -1,3 +1,5 @@
+use super::pattern;
+
 #[derive(Debug)]
 pub struct PositionalToken<'a> {
     pub line: usize,
@@ -38,7 +40,7 @@ pub enum Token<'a> {
     Call,
     Colon,
     Comma,
-    Comment(&'a str),
+    Comment,
     Const,
     Emit,
     EndOfFile,
@@ -55,6 +57,7 @@ pub enum Token<'a> {
     Length,
     Let,
     Literal(&'a str),
+    Numeric(&'a str),
     LogicalAnd,
     LogicalOr,
     Minus,
@@ -92,6 +95,7 @@ impl<'a> From<u8> for Token<'a> {
             b',' => Token::Comma,
             b'-' => Token::Minus,
             b'.' => Token::Period,
+            b'/' => Token::ForwardSlash,
             b':' => Token::Colon,
             b';' => Token::Semicolon,
             b'<' => Token::LeftCarat,
@@ -99,7 +103,6 @@ impl<'a> From<u8> for Token<'a> {
             b'>' => Token::RightCarat,
             b'?' => Token::Question,
             b'[' => Token::LeftBracket,
-            b'/' => Token::ForwardSlash,
             b']' => Token::RightBracket,
             b'{' => Token::LeftCurly,
             b'|' => Token::Pipe,
@@ -126,8 +129,21 @@ impl<'a> From<&'a str> for Token<'a> {
             "slice" => Token::Slice,
             "splice" => Token::Splice,
             "this" => Token::This,
+            "==" => Token::Equality,
+            "//" => Token::Comment,
+            "===" => Token::StrictEquality,
+            "!==" => Token::StrictInequality,
             "var" => Token::Var,
-            _ => Token::Literal(word)
+            _ => {
+                let str_check = word.as_bytes();
+                if pattern::is_numeric(&str_check[0]) {
+                    Token::Numeric(word)
+                } else if pattern::is_literal(&str_check[0]) {
+                    Token::Literal(word)
+                } else {
+                    Token::from(str_check[0])
+                }
+            }
         }
     }
 }

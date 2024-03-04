@@ -18,18 +18,11 @@ pub fn is_literal(char: &u8) -> bool {
      )
 }
 
-pub fn is_longer_candidate(char: &u8) -> bool {
-    matches!(
-        char,
-        b'/'|
-        b'*'|
-        b'+'|
-        b'='|
-        b'!'|
-        b'?'|
-        b'<'|
-        b'>'
-    )
+pub fn is_operator_candidate(char: &u8) -> bool {
+    !is_numeric(char)
+        && !is_literal(char)
+        && !is_whitespaceish(char)
+        && !is_line_terminator(char)
 }
 
 pub fn is_whitespaceish(char: &u8) -> bool {
@@ -47,6 +40,6 @@ pub fn is_line_terminator(char: &u8) -> bool {
     matches!(
         char,
         b'\r'|
-        b'n'
+        b'\n'
     )
 }

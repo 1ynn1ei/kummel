@@ -7,9 +7,20 @@ pub enum JSError {
 
 }
 
+pub enum Mode {
+    Data,
+    BeforeComment,
+    Comment,
+    BlockComment,
+    BeforeString,
+    StringDoubleQuoted,
+    StringSingleQuoted,
+}
+
 type LexerOptionalResult<'stream> = Result<Option<PositionalToken<'stream>>,JSError>;
 
 pub struct Lexer<'stream> {
+    mode: Mode,
     stream: Stream<'stream>,
     current_line: usize,
 }
@@ -17,6 +28,7 @@ pub struct Lexer<'stream> {
 impl<'stream> Lexer<'stream> {
     pub fn new(data: &'stream Vec<u8>) -> Self {
         Self {
+            mode: Mode::Data,
             stream: Stream::new(data),
             current_line: 1
         }
@@ -37,14 +49,67 @@ impl<'stream> Lexer<'stream> {
         } else {
             let char = self.stream.current();
             self.stream.step();
-            self.ruleset(char)
+            match self.mode {
+                Mode::Data => self.data_ruleset(char),
+                Mode::BeforeComment => self.before_comment_ruleset(char),
+                Mode::StringDoubleQuoted => self.string_double_quoted_ruleset(char),
+                Mode::StringSingleQuoted => self.string_single_quoted_ruleset(char),
+                _ => todo!()
+            }
         }
     }
 
-    pub fn ruleset(&mut self, char: u8) -> LexerOptionalResult {
+    pub fn string_double_quoted_ruleset(&mut self, char: u8) -> LexerOptionalResult {
+        let cur_line = self.current_line;
+        let cur_col = 0;
+        
+    }
+
+    pub fn string_single_quoted_ruleset(&mut self, char: u8) -> LexerOptionalResult {
+        let cur_line = self.current_line;
+        let cur_col = 0;
+    }
+
+    pub fn before_comment_ruleset(&mut self, char: u8) -> LexerOptionalResult {
+        let cur_line = self.current_line;
+        let cur_col = 0;
+        /* we've already consumed a / */
+        match char {
+            b'/' => { 
+                self.mode = Mode::Comment;
+                Ok(None)
+            },
+            b'*' => {
+                self.mode = Mode::BlockComment;
+                Ok(None)
+            },
+            _ => {
+                self.mode = Mode::Data;
+                // we're 1-step from the /, re consume it later
+                self.stream.restep();
+                Ok(Some(PositionalToken {
+                    line: cur_line,
+                    col: cur_col,
+                    length: 0,
+                    token: Token::from("/")
+                }))
+            }
+        }
+    }
+
+    pub fn data_ruleset(&mut self, char: u8) -> LexerOptionalResult {
         let cur_line = self.current_line;
         let cur_col = 0;
         match char {
+            b'/' => {
+                self.mode = Mode::BeforeComment;
+                todo!("Before Comment State")
+            },
+            b'\''|
+            b'"' => {
+                self.mode = Mode::BeforeString;
+                todo!("Before String State")
+            },
             b'a'..=b'z' | b'A'..=b'Z' => {
                 let keyword = std::str::from_utf8(
                     self.get_next_literal()
@@ -104,6 +169,10 @@ impl<'stream> Lexer<'stream> {
         }
     }
 
+
+    fn get_single_quote_string(&mut self) -> &[u8] {
+        
+    }
 
     fn get_next_literal(&mut self) -> &[u8] {
         self.stream.restep();

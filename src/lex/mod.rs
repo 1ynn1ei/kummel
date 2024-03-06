@@ -1,7 +1,37 @@
+mod rule;
+mod assist;
+
 use crate::stream::Stream;
-use crate::definition::Token;
-use crate::definition::PositionalToken;
-use crate::definition::pattern;
+use crate::def::Token;
+use crate::def::StringType;
+use crate::def::CommentType;
+use crate::def::PositionalToken;
+use crate::def::pattern;
+
+pub fn generate_token<'s>(stream: &'s mut Stream) -> Token<'s> {
+    if stream.is_eof() {
+        Token::EndOfFile
+    } else {
+        let symbol = stream.current();
+        println!("[LEXING SYMBOL: {:?}]", std::str::from_utf8(&[symbol]).unwrap());
+        match symbol {
+            b'a'..=b'z' | b'A'..=b'Z' => rule::identifier_name(stream),
+            b'"' => rule::string_literal(
+                stream, StringType::DoubleQuoted 
+                ),
+            b'\'' => rule::string_literal(
+                stream, StringType::SingleQuoted 
+                ),
+            b'/' => rule::potential_comment(stream),
+            b' ' => {
+                stream.step();
+                Token::WhiteSpace
+            },
+            _ => todo!()
+        }
+    }
+    
+}
 
 pub enum JSError {
 
@@ -13,6 +43,7 @@ pub enum Mode {
     Comment,
     BlockComment,
     BeforeString,
+    FunctionDelcaration,
     StringDoubleQuoted,
     StringSingleQuoted,
 }
@@ -52,6 +83,8 @@ impl<'stream> Lexer<'stream> {
             match self.mode {
                 Mode::Data => self.data_ruleset(char),
                 Mode::BeforeComment => self.before_comment_ruleset(char),
+                Mode::Comment => self.comment_ruleset(char),
+                Mode::BlockComment => self.block_comment_ruleset(char),
                 Mode::StringDoubleQuoted => self.string_double_quoted_ruleset(char),
                 Mode::StringSingleQuoted => self.string_single_quoted_ruleset(char),
                 _ => todo!()
@@ -62,12 +95,14 @@ impl<'stream> Lexer<'stream> {
     pub fn string_double_quoted_ruleset(&mut self, char: u8) -> LexerOptionalResult {
         let cur_line = self.current_line;
         let cur_col = 0;
+        todo!()
         
     }
 
     pub fn string_single_quoted_ruleset(&mut self, char: u8) -> LexerOptionalResult {
         let cur_line = self.current_line;
         let cur_col = 0;
+        todo!()
     }
 
     pub fn before_comment_ruleset(&mut self, char: u8) -> LexerOptionalResult {
@@ -97,18 +132,40 @@ impl<'stream> Lexer<'stream> {
         }
     }
 
+    pub fn block_comment_ruleset(&mut self, char:u8) -> LexerOptionalResult {
+        todo!()
+    }
+
+    pub fn comment_ruleset(&mut self, char: u8) -> LexerOptionalResult {
+        self.mode = Mode::Data;
+        let cur_line = self.current_line;
+        let cur_col = 0;
+        let comment_text = std::str::from_utf8(
+            self.get_next_comment()
+            ).unwrap();
+        Ok(Some(PositionalToken {
+            line: cur_line,
+            col: cur_col,
+            length: comment_text.len(),
+            token: Token::Comment(comment_text)
+        }))
+    }
+
     pub fn data_ruleset(&mut self, char: u8) -> LexerOptionalResult {
         let cur_line = self.current_line;
         let cur_col = 0;
         match char {
             b'/' => {
                 self.mode = Mode::BeforeComment;
-                todo!("Before Comment State")
+                Ok(None)
             },
-            b'\''|
+            b'\''=> {
+                self.mode = Mode::StringSingleQuoted;
+                Ok(None)
+            },
             b'"' => {
-                self.mode = Mode::BeforeString;
-                todo!("Before String State")
+                self.mode = Mode::StringDoubleQuoted;
+                Ok(None)
             },
             b'a'..=b'z' | b'A'..=b'Z' => {
                 let keyword = std::str::from_utf8(
@@ -171,7 +228,14 @@ impl<'stream> Lexer<'stream> {
 
 
     fn get_single_quote_string(&mut self) -> &[u8] {
-        
+        self.stream.restep();
+        let start_idx = self.stream.cursor();
+        while !pattern::is_line_terminator(
+            &self.stream.current()
+            ) {
+            self.stream.step();
+        }
+        self.stream.get_slice(start_idx)
     }
 
     fn get_next_literal(&mut self) -> &[u8] {

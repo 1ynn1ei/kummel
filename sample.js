@@ -1,7 +1,5 @@
 function test () {
-  let test = "string value";
-
-  if (3 == 5) { // very important comment
+  if (3 == 5) { //test
     return 3 + 4 / 2;
 /* here's a block comment */  }
 }

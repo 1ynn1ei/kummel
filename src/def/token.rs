@@ -40,7 +40,7 @@ pub enum Token<'a> {
     Call,
     Colon,
     Comma,
-    Comment,
+    Comment(&'a str),
     Const,
     Emit,
     EndOfFile,
@@ -57,6 +57,7 @@ pub enum Token<'a> {
     Length,
     Let,
     Literal(&'a str),
+    StringLiteral(&'a str),
     Numeric(&'a str),
     LogicalAnd,
     LogicalOr,
@@ -82,6 +83,7 @@ pub enum Token<'a> {
     Unknown(u8),
     Var,
     Yield,
+    WhiteSpace,
 }
 
 impl<'a> From<u8> for Token<'a> {
@@ -130,11 +132,11 @@ impl<'a> From<&'a str> for Token<'a> {
             "splice" => Token::Splice,
             "this" => Token::This,
             "==" => Token::Equality,
-            "//" => Token::Comment,
             "===" => Token::StrictEquality,
             "!==" => Token::StrictInequality,
             "var" => Token::Var,
             _ => {
+                println!("{:?}", word);
                 let str_check = word.as_bytes();
                 if pattern::is_numeric(&str_check[0]) {
                     Token::Numeric(word)

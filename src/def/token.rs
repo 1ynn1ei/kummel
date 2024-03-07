@@ -8,6 +8,14 @@ pub struct PositionalToken<'a> {
     pub token: Token<'a>,
 }
 
+impl<'a> PositionalToken<'a> {
+    pub fn new(line: usize, col: usize, length: usize, token: Token<'a>) -> Self {
+        Self {
+            line, col, length, token
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum Token<'a> {
     And,
@@ -17,6 +25,7 @@ pub enum Token<'a> {
     AssignmentAdd,
     AssignmentBitwiseAnd,
     AssignmentBitwiseOr,
+    LineTerminator,
     AssignmentBitwiseXor,
     AssignmentDivide,
     AssignmentExponate,
@@ -41,6 +50,7 @@ pub enum Token<'a> {
     Colon,
     Comma,
     Comment(&'a str),
+    Punctuator(&'a str),
     Const,
     Emit,
     EndOfFile,
@@ -56,7 +66,7 @@ pub enum Token<'a> {
     LeftParen,
     Length,
     Let,
-    Literal(&'a str),
+    Identifier(&'a str),
     StringLiteral(&'a str),
     Numeric(&'a str),
     LogicalAnd,
@@ -136,12 +146,12 @@ impl<'a> From<&'a str> for Token<'a> {
             "!==" => Token::StrictInequality,
             "var" => Token::Var,
             _ => {
-                println!("{:?}", word);
+                println!("[TOKEN FORMING FROM {:?}]", word);
                 let str_check = word.as_bytes();
                 if pattern::is_numeric(&str_check[0]) {
                     Token::Numeric(word)
                 } else if pattern::is_literal(&str_check[0]) {
-                    Token::Literal(word)
+                    Token::StringLiteral(word)
                 } else {
                     Token::from(str_check[0])
                 }

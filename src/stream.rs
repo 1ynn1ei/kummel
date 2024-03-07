@@ -3,8 +3,8 @@ use crate::def::pattern;
 pub struct Stream<'a> {
     pub data: &'a Vec<u8>,
     idx: usize,
-    col: usize,
-    line: usize,
+    pub col: usize,
+    pub line: usize,
 }
 
 impl<'a> Stream<'a> {
@@ -46,7 +46,7 @@ impl<'a> Stream<'a> {
     }
 
     pub fn is_eof(&self) -> bool {
-        self.idx >= self.data.len()
+        self.idx > self.data.len()-1
     }
 
     pub fn current(&self) -> u8 {

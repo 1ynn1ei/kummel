@@ -5,6 +5,15 @@ use crate::def::pattern;
 use crate::lex::assist::*;
 use crate::stream::Stream;
 
+pub fn numeric_literal<'s>(
+    stream: &'s mut Stream) -> Token<'s> {
+    let slice_start = walk_until_not_matches(stream, &pattern::is_numeric);
+    let number = slice_into_str(
+        stream.get_slice(slice_start)
+        );
+    Token::Numeric(number)
+}
+
 pub fn string_literal<'s>(
     stream: &'s mut Stream,
     string_type: StringType) -> Token<'s> {
@@ -25,7 +34,7 @@ pub fn identifier_name<'s>(
     let identifier = slice_into_str(
         stream.get_slice(slice_start)
         );
-    Token::from(identifier)
+    Token::Identifier(identifier)
 }
 
 pub fn potential_comment<'s>(
@@ -34,16 +43,28 @@ pub fn potential_comment<'s>(
         match next_symbol {
             b'/' => comment(stream, CommentType::SingleLine),
             b'*' => comment(stream, CommentType::MultiLine),
-            _ => todo!()
+            _ => punctuator(stream)
         }
     } else {
         Token::from("/")
     }
 }
 
+pub fn punctuator<'s>(
+    stream: &'s mut Stream) -> Token<'s> {
+    let slice_start = walk_until_not_matches(stream, &pattern::is_operator_candidate);
+    let punctuator = slice_into_str(
+        stream.get_slice(slice_start)
+        );
+    Token::from(punctuator)
+}
+
 fn comment<'s>(
     stream: &'s mut Stream,
     comment_type: CommentType) -> Token<'s> {
+    // eat the two comment identifiers
+    stream.step();
+    stream.step();
     match comment_type {
         CommentType::SingleLine => {
             let slice_start = walk_until_terminate(stream);

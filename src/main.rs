@@ -24,8 +24,8 @@ fn main() {
             let mut stream = stream::Stream::new(&data);
             loop {
                 let token = lex::generate_token(&mut stream);
-                println!("{:?}", token);
-                if let def::Token::EndOfFile = token {
+                println!("[TOKEN GENERATED: {:?}]", token);
+                if let def::Token::EndOfFile = token.token {
                     return;
                 }
             }

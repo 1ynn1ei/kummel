@@ -18,6 +18,29 @@ pub fn is_literal(char: &u8) -> bool {
      )
 }
 
+// b'!'|
+// b'%'|
+// b'&'|
+// b'('|
+// b')'|
+// b'+'|
+// b','|
+// b'-'|
+// b'.'|
+// b':'|
+// b';'|
+// b'<'|
+// b'='|
+// b'>'|
+// b'?'|
+// b'['|
+// b']'|
+// b'^'|
+// b'{'|
+// b'|'|
+// b'}'|
+// b'~'|
+// b'/'
 pub fn is_operator_candidate(char: &u8) -> bool {
     !is_numeric(char)
         && !is_literal(char)

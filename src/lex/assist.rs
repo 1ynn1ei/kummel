@@ -15,11 +15,17 @@ pub fn walk_until_expect_expect(
     expect1: u8,
     expect2: u8) -> usize {
     let start_idx = stream.cursor();
-    let prev = stream.current();
-    while 
-        !(stream.is_eof() || prev == expect1 && stream.current() == expect2) {
-        stream.step();
+    loop {
+        let Some(next) = stream.peek() else { break; };
+        println!("{:?} {:?}", next, stream.current());
+        if !(stream.current() == expect1 && next == expect2) {
+            stream.step();
+        } else {
+            break;
+        }
     }
+    stream.step();
+    stream.step();
     start_idx
 }
 

@@ -17,10 +17,17 @@ pub fn numeric_literal<'s>(
 pub fn string_literal<'s>(
     stream: &'s mut Stream,
     string_type: StringType) -> Token<'s> {
+    stream.step();
     let (start, end) = match string_type {
         StringType::DoubleQuoted => walk_until_expect_or_terminate(stream, b'"'),
         StringType::SingleQuoted => walk_until_expect_or_terminate(stream, b'\'')
     };
+    // consume quote if it exists, otherwise it is unescaped
+    match stream.current() {
+        b'\''|
+        b'"' => stream.step(),
+        _ => {},
+    }
     Token::StringLiteral(
         slice_into_str(
             stream.get_slice(start, end)

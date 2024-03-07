@@ -4,9 +4,7 @@ mod assist;
 use crate::stream::Stream;
 use crate::def::Token;
 use crate::def::StringType;
-use crate::def::CommentType;
 use crate::def::PositionalToken;
-use crate::def::pattern;
 
 pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
     let line = stream.line;
@@ -20,7 +18,7 @@ pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
         }
     } else {
         let symbol = stream.current();
-        // println!("[LEXING SYMBOL: {:?}]", std::str::from_utf8(&[symbol]).unwrap());
+        println!("[LEXING SYMBOL: {:?}]", std::str::from_utf8(&[symbol]).unwrap());
         let token = match symbol {
             b'a'..=b'z' | b'A'..=b'Z' => rule::identifier_name(stream),
             b'0'..=b'9' => rule::numeric_literal(stream),
@@ -68,10 +66,4 @@ pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
             token
         }
     }
-    
 }
-
-pub enum JSError {
-
-}
-

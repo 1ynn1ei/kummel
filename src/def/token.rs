@@ -16,7 +16,7 @@ impl<'a> PositionalToken<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token<'a> {
     And,
     Apply,
@@ -146,7 +146,6 @@ impl<'a> From<&'a str> for Token<'a> {
             "!==" => Token::StrictInequality,
             "var" => Token::Var,
             _ => {
-                println!("[TOKEN FORMING FROM {:?}]", word);
                 let str_check = word.as_bytes();
                 if pattern::is_numeric(&str_check[0]) {
                     Token::Numeric(word)

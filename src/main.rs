@@ -4,7 +4,6 @@ mod arena;
 mod stream;
 mod lex;
 use std::fs;
-use lex::Lexer;
 use clap::Parser;
 use clap::Subcommand;
 
@@ -29,19 +28,6 @@ fn main() {
                     return;
                 }
             }
-            // let mut lexer = Lexer::new(&data);
-            // loop {
-            //     let token = lexer.next_token();
-            //     if let Ok(Some(token)) = token {
-            //         println!("{:?}", token);
-            //         match token.token {
-            //             def::Token::EndOfFile => {
-            //                 return;
-            //             },
-            //             _ => { continue }
-            //         }
-            //     }
-            // }
         },
         Err(e) => {
             println!("{}", e);

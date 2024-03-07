@@ -54,7 +54,7 @@ impl<'a> Stream<'a> {
         self.idx
     }
 
-    pub fn get_slice(&self, start: usize) -> &[u8] {
-        &self.data[start..self.idx]
+    pub fn get_slice(&self, start: usize, end: usize) -> &[u8] {
+        &self.data[start..end]
     }
 }

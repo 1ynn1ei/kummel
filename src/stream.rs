@@ -16,18 +16,15 @@ impl<'a> Stream<'a> {
             line: 0
         }
     }
-    pub fn step(&mut self) -> Option<u8> {
-        if self.idx + 1 > self.data.len() {
-            None
-        } else {
-            self.idx += 1;
+    pub fn step(&mut self) {
+        self.idx += 1;
+        if !self.is_eof() {
             if pattern::is_line_terminator(&self.data[self.idx]) {
                 self.line += 1;
                 self.col = 0;
             } else {
                 self.col += 1;
             }
-            Some(self.data[self.idx])
         }
     }
 
@@ -46,7 +43,7 @@ impl<'a> Stream<'a> {
     }
 
     pub fn is_eof(&self) -> bool {
-        self.idx > self.data.len()-1
+        self.idx >= self.data.len()
     }
 
     pub fn current(&self) -> u8 {

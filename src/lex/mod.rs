@@ -12,6 +12,7 @@ pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
     let line = stream.line;
     let col = stream.col;
 
+    println!("{}", stream.is_eof());
     if stream.is_eof() {
         PositionalToken {
             line,

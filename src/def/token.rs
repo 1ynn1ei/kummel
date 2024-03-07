@@ -8,7 +8,15 @@ pub struct PositionalToken<'a> {
     pub token: Token<'a>,
 }
 
-#[derive(Debug)]
+impl<'a> PositionalToken<'a> {
+    pub fn new(line: usize, col: usize, length: usize, token: Token<'a>) -> Self {
+        Self {
+            line, col, length, token
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Token<'a> {
     And,
     Apply,
@@ -17,6 +25,7 @@ pub enum Token<'a> {
     AssignmentAdd,
     AssignmentBitwiseAnd,
     AssignmentBitwiseOr,
+    LineTerminator,
     AssignmentBitwiseXor,
     AssignmentDivide,
     AssignmentExponate,
@@ -40,7 +49,8 @@ pub enum Token<'a> {
     Call,
     Colon,
     Comma,
-    Comment,
+    Comment(&'a str),
+    Punctuator(&'a str),
     Const,
     Emit,
     EndOfFile,
@@ -56,7 +66,8 @@ pub enum Token<'a> {
     LeftParen,
     Length,
     Let,
-    Literal(&'a str),
+    Identifier(&'a str),
+    StringLiteral(&'a str),
     Numeric(&'a str),
     LogicalAnd,
     LogicalOr,
@@ -82,6 +93,7 @@ pub enum Token<'a> {
     Unknown(u8),
     Var,
     Yield,
+    WhiteSpace,
 }
 
 impl<'a> From<u8> for Token<'a> {
@@ -130,7 +142,6 @@ impl<'a> From<&'a str> for Token<'a> {
             "splice" => Token::Splice,
             "this" => Token::This,
             "==" => Token::Equality,
-            "//" => Token::Comment,
             "===" => Token::StrictEquality,
             "!==" => Token::StrictInequality,
             "var" => Token::Var,
@@ -139,7 +150,7 @@ impl<'a> From<&'a str> for Token<'a> {
                 if pattern::is_numeric(&str_check[0]) {
                     Token::Numeric(word)
                 } else if pattern::is_literal(&str_check[0]) {
-                    Token::Literal(word)
+                    Token::StringLiteral(word)
                 } else {
                     Token::from(str_check[0])
                 }

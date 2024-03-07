@@ -1,10 +1,9 @@
 #![allow(dead_code, unused)]
-mod definition;
+mod def;
 mod arena;
 mod stream;
-mod lexer;
+mod lex;
 use std::fs;
-use lexer::Lexer;
 use clap::Parser;
 use clap::Subcommand;
 
@@ -21,18 +20,14 @@ fn main() {
     let file = cli.path;
     match fs::read(file) {
         Ok(data) => {
-            let mut lexer = Lexer::new(&data);
+            let mut stream = stream::Stream::new(&data);
             loop {
-                let token = lexer.next_token();
-                if let Ok(Some(token)) = token {
-                    println!("{:?}", token);
-                    match token.token {
-                        definition::Token::EndOfFile => {
-                            return;
-                        },
-                        _ => { continue }
-                    }
+                let token = lex::generate_token(&mut stream);
+                match token.token {
+                    def::Token::WhiteSpace => { },
+                    _ => println!("[TOKEN GENERATED: {:?}]", token)
                 }
+                if let def::Token::EndOfFile = token.token { return; }
             }
         },
         Err(e) => {

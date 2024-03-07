@@ -1,17 +1,31 @@
+use crate::def::pattern;
+
 pub struct Stream<'a> {
     pub data: &'a Vec<u8>,
     idx: usize,
+    pub col: usize,
+    pub line: usize,
 }
 
 impl<'a> Stream<'a> {
     pub fn new(data: &'a Vec<u8>) -> Self {
         Stream {
             data,
-            idx: 0
+            idx: 0,
+            col: 0,
+            line: 0
         }
     }
     pub fn step(&mut self) {
         self.idx += 1;
+        if !self.is_eof() {
+            if pattern::is_line_terminator(&self.data[self.idx]) {
+                self.line += 1;
+                self.col = 0;
+            } else {
+                self.col += 1;
+            }
+        }
     }
 
     pub fn restep(&mut self) {
@@ -19,7 +33,9 @@ impl<'a> Stream<'a> {
     }
 
     pub fn peek(&self) -> Option<u8> {
-        if self.idx + 1 >= self.data.len() {
+        if self.idx == 0 {
+            Some(self.data[self.idx])
+        } else if self.idx + 1 >= self.data.len() {
             None
         } else {
             Some(self.data[self.idx + 1])
@@ -38,48 +54,7 @@ impl<'a> Stream<'a> {
         self.idx
     }
 
-    pub fn get_slice(&self, start: usize) -> &[u8] {
-        &self.data[start..self.idx]
-    }
-
-    pub fn expect(&self, chars: &str) -> bool {
-        if chars.len() + self.idx > self.data.len() {
-            false
-        } else {
-            for (offset, byte) in chars.as_bytes().iter().enumerate() {
-                if &self.data[self.idx+offset] == byte {
-                    continue;
-                } else {
-                    return false;
-                }
-            }
-            true
-        }
-
-    }
-
-    pub fn expect_insensitive(&self, chars: &str) -> bool {
-        // TODO: obviously needs to be modified for case insensitivity
-        if chars.len() + self.idx > self.data.len() {
-            false
-        } else {
-            for (offset, byte) in chars.as_bytes().iter().enumerate() {
-                if &self.data[self.idx+offset] == byte {
-                    continue;
-                } else {
-                    return false;
-                }
-            }
-            true
-        }
-
-    }
-
-    pub fn consume(&mut self, chars: &str) {
-        self.idx += chars.len() - 1
-    }
-
-    pub fn reconsume(&mut self, chars: &str) {
-        self.idx -= chars.len()
+    pub fn get_slice(&self, start: usize, end: usize) -> &[u8] {
+        &self.data[start..end]
     }
 }

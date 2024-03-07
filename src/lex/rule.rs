@@ -47,6 +47,7 @@ pub fn identifier_name<'s>(
 pub fn potential_comment<'s>(
     stream: &'s mut Stream) -> Token<'s> {
     if let Some(next_symbol) = stream.peek() {
+        println!("{:?}", std::str::from_utf8(&[next_symbol]));
         match next_symbol {
             b'/' => comment(stream, CommentType::SingleLine),
             b'*' => comment(stream, CommentType::MultiLine),
@@ -83,7 +84,6 @@ fn comment<'s>(
         },
         CommentType::MultiLine => {
             let (start, end) = walk_until_expect_expect(stream,b'*',b'/');
-
             Token::Comment(
                 slice_into_str(
                     stream.get_slice(start, end)

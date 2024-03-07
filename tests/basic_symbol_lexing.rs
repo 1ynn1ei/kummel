@@ -27,3 +27,19 @@ fn basic_inline_comment() {
     assert_eq!(Token::LineTerminator, gen.get().token);
     assert_eq!(Token::Comment(""), gen.get().token);
 }
+
+#[test]
+fn basic_block_comment() {
+    let data = std::fs::read("./tests/data/block_comment.js").unwrap();
+    let mut gen = TokenGenerator::new(stream::Stream::new(&data));
+    assert_eq!(Token::Comment(" // "), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Comment("//"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Comment("**"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Comment("/*t"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Comment(""), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+}

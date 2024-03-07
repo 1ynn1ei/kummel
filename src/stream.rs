@@ -33,9 +33,7 @@ impl<'a> Stream<'a> {
     }
 
     pub fn peek(&self) -> Option<u8> {
-        if self.idx == 0 {
-            Some(self.data[self.idx])
-        } else if self.idx + 1 >= self.data.len() {
+        if self.idx + 1 >= self.data.len() {
             None
         } else {
             Some(self.data[self.idx + 1])

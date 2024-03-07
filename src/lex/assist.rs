@@ -14,7 +14,7 @@ pub fn walk_until_expect_expect(
     stream: &mut Stream,
     expect1: u8,
     expect2: u8) -> (usize, usize) {
-    let start_idx = stream.cursor();
+    let start = stream.cursor();
     loop {
         let Some(next) = stream.peek() else { break; };
         if !(stream.current() == expect1 && next == expect2) {
@@ -23,10 +23,10 @@ pub fn walk_until_expect_expect(
             break;
         }
     }
-    let end_idx = stream.cursor();
+    let end = stream.cursor();
     stream.step();
     stream.step();
-    (start_idx, end_idx)
+    (start, end)
 }
 
 pub fn walk_until_expect_or_terminate(

@@ -5,7 +5,6 @@ mod stream;
 mod lex;
 use std::fs;
 use clap::Parser;
-use clap::Subcommand;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

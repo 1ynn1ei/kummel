@@ -5,4 +5,5 @@ null
 false
 true
 NaN
+function
 variable_name

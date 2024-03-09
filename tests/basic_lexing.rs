@@ -16,6 +16,38 @@ fn basic_string_literal() {
 }
 
 #[test]
+fn basic_punctuator() {
+    let data = std::fs::read("./tests/data/punctuator.js").unwrap();
+    let mut gen = TokenGenerator::new(stream::Stream::new(&data));
+    assert_eq!(Token::Punctuator("&&"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("||"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("??"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("<<"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator(">>"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("--"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("++"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("?."), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("<="), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator(">="), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("=="), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("==="), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Punctuator("!="), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+}
+
+#[test]
 fn basic_numeric_literal() {
     let data = std::fs::read("./tests/data/numeric_literal.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
@@ -67,6 +99,8 @@ fn basic_identifier() {
     assert_eq!(Token::Identifier("true"), gen.get().token);
     assert_eq!(Token::LineTerminator, gen.get().token);
     assert_eq!(Token::Identifier("NaN"), gen.get().token);
+    assert_eq!(Token::LineTerminator, gen.get().token);
+    assert_eq!(Token::Identifier("function"), gen.get().token);
     assert_eq!(Token::LineTerminator, gen.get().token);
     assert_eq!(Token::Identifier("variable_name"), gen.get().token);
     assert_eq!(Token::LineTerminator, gen.get().token);

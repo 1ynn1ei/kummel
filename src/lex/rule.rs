@@ -64,7 +64,7 @@ pub fn punctuator<'s>(
     let punctuator = slice_into_str(
         stream.get_slice(start, end)
         );
-    Token::from(punctuator)
+    Token::Punctuator(punctuator)
 }
 
 fn comment<'s>(

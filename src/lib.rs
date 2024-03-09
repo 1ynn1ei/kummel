@@ -1,4 +1,6 @@
 mod lex;
+mod parse;
+pub mod arena;
 pub mod def;
 pub mod stream;
 

@@ -9,13 +9,13 @@ pub struct Arena<T> {
     inactive_pool: Vec<ArenaRef>,
 }
 
-impl<T> Arena<T> {
-    pub fn new() -> Self {
-        Self {
-            active_pool: Vec::new(),
-            inactive_pool: Vec::new(),
-        }
+impl<T> Default for Arena<T> {
+    fn default() -> Self {
+        Self { active_pool: Vec::new(), inactive_pool: Vec::new() }
     }
+}
+
+impl<T> Arena<T> {
 
     pub fn get(&self, index: ArenaRef) -> Option<&T> {
         match self.active_pool.get(index) {

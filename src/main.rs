@@ -3,6 +3,7 @@ mod def;
 mod arena;
 mod stream;
 mod lex;
+mod parse;
 use std::fs;
 use clap::Parser;
 

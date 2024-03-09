@@ -3,8 +3,8 @@ use kml::def::Token;
 use kml::stream;
 
 #[test]
-fn basic_string_literal() {
-    let data = std::fs::read("./tests/data/string_literal.js").unwrap();
+fn string() {
+    let data = std::fs::read("./tests/data/string.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::StringLiteral("test1"), gen.get().token);
     assert_eq!(Token::LineTerminator, gen.get().token);
@@ -16,7 +16,7 @@ fn basic_string_literal() {
 }
 
 #[test]
-fn basic_punctuator() {
+fn punctuator() {
     let data = std::fs::read("./tests/data/punctuator.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::Punctuator("&&"), gen.get().token);
@@ -48,8 +48,8 @@ fn basic_punctuator() {
 }
 
 #[test]
-fn basic_numeric_literal() {
-    let data = std::fs::read("./tests/data/numeric_literal.js").unwrap();
+fn numeric() {
+    let data = std::fs::read("./tests/data/numeric.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::Numeric("0"), gen.get().token);
     assert_eq!(Token::LineTerminator, gen.get().token);
@@ -70,7 +70,7 @@ fn basic_numeric_literal() {
 }
 
 #[test]
-fn basic_inline_comment() {
+fn inline_comment() {
     let data = std::fs::read("./tests/data/inline_comment.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::Comment(" test"), gen.get().token);
@@ -83,7 +83,7 @@ fn basic_inline_comment() {
 }
 
 #[test]
-fn basic_identifier() {
+fn identifier() {
     let data = std::fs::read("./tests/data/identifier.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::Identifier("if"), gen.get().token);
@@ -107,7 +107,7 @@ fn basic_identifier() {
 }
 
 #[test]
-fn basic_block_comment() {
+fn block_comment() {
     let data = std::fs::read("./tests/data/block_comment.js").unwrap();
     let mut gen = TokenGenerator::new(stream::Stream::new(&data));
     assert_eq!(Token::Comment(" // "), gen.get().token);

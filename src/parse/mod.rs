@@ -11,7 +11,7 @@ use crate::def::PositionalToken;
 use crate::def::Token;
 type TokenIter<'a> = 
     std::iter::Peekable<
-    std::slice::Iter<'a, PositionalToken>
+    std::slice::Iter<'a, &'a PositionalToken>
     >;
 
 #[derive(Debug)]
@@ -42,15 +42,20 @@ pub enum AstNode {
     }
 }
 
-pub fn make_tree(tokens: Vec<PositionalToken>) -> AstNode {
-    let mut iter = tokens.iter().peekable();
+pub fn make_tree(tokens: Vec<PositionalToken>) -> Arena<AstNode> {
+    let mut iter = tokens
+        .iter()
+        .filter(|token| !matches!(token.token, Token::WhiteSpace))
+        .collect::<Vec<_>>();
+    let mut iter = iter
+        .iter()
+        .peekable();
     let mut node_pool = Arena::<AstNode>::default();
     let mut last_ref = node_pool.add(AstNode::Program {
         body: Vec::new()
     });
-    let expression = expression(&mut node_pool, &mut iter);
-    println!("{:?}", node_pool);
-    todo!()
+    expression(&mut node_pool, &mut iter);
+    node_pool
 }
 
 fn expression(
@@ -92,12 +97,12 @@ fn multiplicative_expression(
     if let Some(token) = iter.peek() {
         match &token.token {
             Token::Punctuator(punctuation) => {
-                iter.next();
                 let operator = match punctuation.as_str() {
                     "*" => Operator::Multiplication,
                     "/" => Operator::Division,
-                    _ => todo!()
+                    p => { return lhs }
                 };
+                iter.next();
                 let rhs = multiplicative_expression(node_pool, iter);
                 node_pool.add(AstNode::BinaryExpression {
                     lhs,
@@ -123,6 +128,7 @@ fn literal(
     node_pool: &mut Arena<AstNode>,
     iter: &mut TokenIter) -> ArenaRef {
     if let Some(token) = iter.next() {
+        println!("{:?}", token);
         let node = match &token.token {
             Token::Numeric(number) => AstNode::Literal {
                 value: number.to_string().parse::<u64>().unwrap(),
@@ -133,7 +139,6 @@ fn literal(
     }
     todo!()
 }
-
 
 pub fn test_expression_evaluator() {
     let mut node_pool = Arena::<AstNode>::default();

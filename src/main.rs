@@ -25,14 +25,16 @@ fn main() {
             loop {
                 let token = lex::generate_token(&mut stream);
                 match token.token {
-                    def::Token::WhiteSpace => { },
-                    _ => println!("[TOKEN GENERATED: {:?}]", token)
+                    // def::Token::WhiteSpace => { },
+                    _ => println!("[TOKEN GENERATED: {:?}]", token.token)
                 }
                 if let def::Token::EndOfFile = token.token {
-                    return;
+                    break;
                 }
                 tokens.push(token);
             }
+            println!("here");
+            println!("{:?}", parse::make_tree(tokens));
         },
         Err(e) => {
             println!("{}", e);

@@ -18,7 +18,6 @@ pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
         }
     } else {
         let symbol = stream.current();
-        println!("[LEXING SYMBOL: {:?}]", std::str::from_utf8(&[symbol]).unwrap());
         let token = match symbol {
             b'a'..=b'z' | b'A'..=b'Z' => rule::identifier_name(stream),
             b'0'..=b'9' => rule::numeric_literal(stream),

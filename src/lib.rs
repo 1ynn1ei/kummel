@@ -1,3 +1,4 @@
+#![allow(dead_code, unused)]
 mod lex;
 mod parse;
 pub mod arena;

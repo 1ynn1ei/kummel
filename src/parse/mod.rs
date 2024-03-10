@@ -9,12 +9,19 @@ use crate::arena::Arena;
 use crate::arena::ArenaRef;
 use crate::def::PositionalToken;
 use crate::def::Token;
-type TokenIter<'s> = std::slice::Iter<'s, PositionalToken<'s>>;
+type TokenIter<'s> = 
+    std::iter::Peekable<
+    std::slice::Iter<'s, PositionalToken<'s>>
+    >;
+
+#[derive(Debug)]
 pub enum Operator {
     Addition,
+    Multiplication,
     Division
 }
 
+#[derive(Debug)]
 pub enum AstNode {
     Program {
         body: Vec<ArenaRef>
@@ -32,72 +39,101 @@ pub enum AstNode {
     },
     UnaryExpression {
         expression: ArenaRef,
-        operator: Operator
     }
 }
 
 pub fn make_tree(tokens: Vec<PositionalToken>) -> AstNode {
-    let mut iter = tokens.iter();
+    let mut iter = tokens.iter().peekable();
     let mut node_pool = Arena::<AstNode>::default();
     let mut last_ref = node_pool.add(AstNode::Program {
         body: Vec::new()
     });
-    let expression = binary_expression(&mut node_pool, &mut iter);
-    todo!()
-}
-
-fn binary_expression(
-    node_pool: &mut Arena<AstNode>,
-    iter: &mut TokenIter) -> ArenaRef {
-    /*
-     * Binary Expression:
-     * lhs : Expression
-     * rhs : Expression
-     * operator
-     * expression(lhs, rhs, operator)
-     * expression(5, expression(8, 3, /) +)
-     */
-    if let Some(token) = iter.next() {
-        let lhs = match token.token {
-            Token::Numeric(number) => AstNode::Literal {
-                value: number.to_string().parse::<u64>().unwrap(),
-            },
-            _ => todo!()
-        };
-
-        if let Some(token) = iter.next() {
-            let operator = match token.token {
-                Token::Punctuator(punctuation) => {
-                    match punctuation {
-                        "/" => Operator::Division,
-                        "+" => Operator::Addition,
-                        _ => todo!()
-                    }
-                },
-                _ => todo!()
-            };
-
-            if let Some(token) = iter.next() {
-                let rhs = match token.token {
-                    Token::Numeric(number) => AstNode::Literal {
-                        value: number.to_string().parse::<u64>().unwrap(),
-                    },
-                    _ => todo!()
-                };
-                let lhs = node_pool.add(lhs);
-                let rhs = node_pool.add(rhs);
-                return node_pool.add(AstNode::BinaryExpression { lhs, rhs, operator })
-            }
-        }
-    }
+    let expression = expression(&mut node_pool, &mut iter);
+    println!("{:?}", node_pool);
     todo!()
 }
 
 fn expression(
     node_pool: &mut Arena<AstNode>,
     iter: &mut TokenIter) -> ArenaRef {
+    additive_expression(node_pool, iter)
+}
+
+fn additive_expression(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> ArenaRef {
+    let lhs = multiplicative_expression(node_pool, iter);
+    if let Some(token) = iter.peek() {
+        match token.token {
+            Token::Punctuator(punctuation) => {
+                iter.next();
+                let operator = match punctuation {
+                    "+" => Operator::Addition,
+                    _ => todo!()
+                };
+                let rhs = additive_expression(node_pool, iter);
+                node_pool.add(AstNode::BinaryExpression {
+                    lhs,
+                    rhs,
+                    operator
+                })
+            },
+            _ => lhs
+        }
+    } else {
+        lhs
+    }
+}
+
+fn multiplicative_expression(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> ArenaRef {
+    let lhs = unary_expression(node_pool, iter);
+    if let Some(token) = iter.peek() {
+        match token.token {
+            Token::Punctuator(punctuation) => {
+                iter.next();
+                let operator = match punctuation {
+                    "*" => Operator::Multiplication,
+                    "/" => Operator::Division,
+                    _ => todo!()
+                };
+                let rhs = multiplicative_expression(node_pool, iter);
+                node_pool.add(AstNode::BinaryExpression {
+                    lhs,
+                    rhs,
+                    operator
+                })
+            },
+            _ => lhs
+        }
+    } else {
+        lhs
+    }
+}
+
+fn unary_expression(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> ArenaRef {
+    let literal = literal(node_pool, iter);
+    node_pool.add(AstNode::UnaryExpression { expression: literal })
+}
+
+fn literal(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> ArenaRef {
+    if let Some(token) = iter.next() {
+        let node = match token.token {
+            Token::Numeric(number) => AstNode::Literal {
+                value: number.to_string().parse::<u64>().unwrap(),
+            },
+            _ => todo!()
+        };
+        return node_pool.add(node);
+    }
     todo!()
 }
+
 
 pub fn test_expression_evaluator() {
     let mut node_pool = Arena::<AstNode>::default();

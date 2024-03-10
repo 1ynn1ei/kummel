@@ -21,13 +21,16 @@ fn main() {
     match fs::read(file) {
         Ok(data) => {
             let mut stream = stream::Stream::new(&data);
+            let mut tokens : Vec<def::PositionalToken> = Vec::new();
             loop {
                 let token = lex::generate_token(&mut stream);
                 match token.token {
                     def::Token::WhiteSpace => { },
                     _ => println!("[TOKEN GENERATED: {:?}]", token)
                 }
-                if let def::Token::EndOfFile = token.token { return; }
+                if let def::Token::EndOfFile = token.token {
+                    return;
+                }
             }
         },
         Err(e) => {

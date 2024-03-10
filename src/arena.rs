@@ -4,6 +4,7 @@ pub enum ArenaError {
     IndexOutOfBounds
 }
 
+#[derive(Debug)]
 pub struct Arena<T> {
     active_pool: Vec<Option<T>>,
     inactive_pool: Vec<ArenaRef>,

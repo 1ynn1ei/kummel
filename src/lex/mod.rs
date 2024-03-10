@@ -6,7 +6,7 @@ use crate::def::Token;
 use crate::def::StringType;
 use crate::def::PositionalToken;
 
-pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
+pub fn generate_token(stream: &mut Stream) -> PositionalToken {
     let line = stream.line;
     let col = stream.col;
     if stream.is_eof() {

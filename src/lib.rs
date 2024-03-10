@@ -5,12 +5,12 @@ pub mod arena;
 pub mod def;
 pub mod stream;
 
-pub struct TokenGenerator<'s> {
-    stream: stream::Stream<'s>
+pub struct TokenGenerator {
+    stream: stream::Stream
 }
 
-impl<'s> TokenGenerator<'s> {
-    pub fn new(stream: stream::Stream<'s>) -> Self {
+impl TokenGenerator {
+    pub fn new(stream: stream::Stream) -> Self {
         Self { stream }
     }
 

@@ -52,6 +52,6 @@ pub fn walk_until_not_matches(
     (start_idx, stream.cursor())
 }
 
-pub fn slice_into_str(slice: &[u8]) -> &str {
-    std::str::from_utf8(slice).unwrap()
+pub fn slice_into_str(slice: &[u8]) -> String {
+    std::str::from_utf8(slice).unwrap().to_string()
 }

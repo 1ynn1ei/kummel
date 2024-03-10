@@ -20,7 +20,7 @@ fn main() {
     let file = cli.path;
     match fs::read(file) {
         Ok(data) => {
-            let mut stream = stream::Stream::new(&data);
+            let mut stream = stream::Stream::new(data);
             let mut tokens : Vec<def::PositionalToken> = Vec::new();
             loop {
                 let token = lex::generate_token(&mut stream);
@@ -31,6 +31,7 @@ fn main() {
                 if let def::Token::EndOfFile = token.token {
                     return;
                 }
+                tokens.push(token);
             }
         },
         Err(e) => {

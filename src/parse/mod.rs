@@ -9,9 +9,9 @@ use crate::arena::Arena;
 use crate::arena::ArenaRef;
 use crate::def::PositionalToken;
 use crate::def::Token;
-type TokenIter<'s> = 
+type TokenIter<'a> = 
     std::iter::Peekable<
-    std::slice::Iter<'s, PositionalToken<'s>>
+    std::slice::Iter<'a, PositionalToken>
     >;
 
 #[derive(Debug)]
@@ -64,10 +64,10 @@ fn additive_expression(
     iter: &mut TokenIter) -> ArenaRef {
     let lhs = multiplicative_expression(node_pool, iter);
     if let Some(token) = iter.peek() {
-        match token.token {
+        match &token.token {
             Token::Punctuator(punctuation) => {
                 iter.next();
-                let operator = match punctuation {
+                let operator = match punctuation.as_str() {
                     "+" => Operator::Addition,
                     _ => todo!()
                 };
@@ -90,10 +90,10 @@ fn multiplicative_expression(
     iter: &mut TokenIter) -> ArenaRef {
     let lhs = unary_expression(node_pool, iter);
     if let Some(token) = iter.peek() {
-        match token.token {
+        match &token.token {
             Token::Punctuator(punctuation) => {
                 iter.next();
-                let operator = match punctuation {
+                let operator = match punctuation.as_str() {
                     "*" => Operator::Multiplication,
                     "/" => Operator::Division,
                     _ => todo!()
@@ -123,7 +123,7 @@ fn literal(
     node_pool: &mut Arena<AstNode>,
     iter: &mut TokenIter) -> ArenaRef {
     if let Some(token) = iter.next() {
-        let node = match token.token {
+        let node = match &token.token {
             Token::Numeric(number) => AstNode::Literal {
                 value: number.to_string().parse::<u64>().unwrap(),
             },

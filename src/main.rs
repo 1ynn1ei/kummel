@@ -35,7 +35,7 @@ fn main() {
                 tokens.push(token);
             }
             let expression_ref = parse::make_tree(&mut node_pool, tokens);
-            parse::print_node(&node_pool, expression_ref, 0);
+            println!("{}", parse::print_node(&node_pool, &expression_ref, 0));
         },
         Err(e) => {
             println!("{}", e);

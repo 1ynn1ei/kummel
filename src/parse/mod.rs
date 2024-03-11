@@ -21,6 +21,16 @@ pub enum Operator {
     Division
 }
 
+impl std::fmt::Display for Operator {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Operator::Addition => write!(f, "Addition"),
+            Operator::Division => write!(f, "Division"),
+            _ => todo!()
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum AstNode {
     Program {
@@ -43,28 +53,47 @@ pub enum AstNode {
 }
 
 
+fn ident_string(old_string: &str, ident: usize) -> String {
+    let mut string = String::new();
+    for i in 0..ident {
+        string.push(' ');
+        string.push(' ');
+    }
+    format!("{string}{old_string}")
+}
+
 pub fn print_node(
     node_pool: &Arena<AstNode>,
-    cur_ref: ArenaRef,
+    cur_ref: &ArenaRef,
     ident: usize,
     ) -> String {
-    let node = node_pool.get(cur_ref).unwrap();
+    let node = node_pool.get(*cur_ref).unwrap();
     match node {
         AstNode::Program { body } => {
             todo!()
         },
         AstNode::Literal { value } => {
-            todo!()
+            let header = ident_string("Literal: ", ident);
+            let value_str = ident_string(
+                value.to_string().as_str(),
+                ident + 1);
+            format!("{header}\n{value_str}")
         },
         AstNode::BinaryExpression { lhs, rhs, operator } => {
-            todo!()
+            let header = ident_string("BinaryExpression: ",ident);
+            let lhs = print_node(node_pool, lhs, ident + 1);
+            let rhs = print_node(node_pool, rhs, ident + 1);
+            let operator_str = ident_string("Operator: ", ident + 1);
+
+            format!("{header}\n{lhs}\n{rhs}\n{operator_str}{operator}")
         },
         AstNode::UnaryExpression { expression } => {
-            todo!()
+            let header = ident_string("UnaryExpression: ",ident);
+            let expression = print_node(node_pool, expression, ident + 1);
+            format!("{header}\n{expression}")
         },
         _ => todo!()
     }
-    todo!()
 }
 
 pub fn make_tree(

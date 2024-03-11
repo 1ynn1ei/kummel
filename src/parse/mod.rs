@@ -42,7 +42,34 @@ pub enum AstNode {
     }
 }
 
-pub fn make_tree(tokens: Vec<PositionalToken>) -> Arena<AstNode> {
+
+pub fn print_node(
+    node_pool: &Arena<AstNode>,
+    cur_ref: ArenaRef,
+    ident: usize,
+    ) -> String {
+    let node = node_pool.get(cur_ref).unwrap();
+    match node {
+        AstNode::Program { body } => {
+            todo!()
+        },
+        AstNode::Literal { value } => {
+            todo!()
+        },
+        AstNode::BinaryExpression { lhs, rhs, operator } => {
+            todo!()
+        },
+        AstNode::UnaryExpression { expression } => {
+            todo!()
+        },
+        _ => todo!()
+    }
+    todo!()
+}
+
+pub fn make_tree(
+    node_pool: &mut Arena<AstNode>,
+    tokens: Vec<PositionalToken>) -> ArenaRef {
     let mut iter = tokens
         .iter()
         .filter(|token| !matches!(token.token, Token::WhiteSpace))
@@ -50,12 +77,10 @@ pub fn make_tree(tokens: Vec<PositionalToken>) -> Arena<AstNode> {
     let mut iter = iter
         .iter()
         .peekable();
-    let mut node_pool = Arena::<AstNode>::default();
     let mut last_ref = node_pool.add(AstNode::Program {
         body: Vec::new()
     });
-    expression(&mut node_pool, &mut iter);
-    node_pool
+    expression(node_pool, &mut iter)
 }
 
 fn expression(
@@ -128,7 +153,6 @@ fn literal(
     node_pool: &mut Arena<AstNode>,
     iter: &mut TokenIter) -> ArenaRef {
     if let Some(token) = iter.next() {
-        println!("{:?}", token);
         let node = match &token.token {
             Token::Numeric(number) => AstNode::Literal {
                 value: number.to_string().parse::<u64>().unwrap(),

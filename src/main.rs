@@ -21,11 +21,12 @@ fn main() {
     match fs::read(file) {
         Ok(data) => {
             let mut stream = stream::Stream::new(data);
+            let mut node_pool = arena::Arena::<parse::AstNode>::default();
             let mut tokens : Vec<def::PositionalToken> = Vec::new();
             loop {
                 let token = lex::generate_token(&mut stream);
                 match token.token {
-                    // def::Token::WhiteSpace => { },
+                    def::Token::WhiteSpace => { },
                     _ => println!("[TOKEN GENERATED: {:?}]", token.token)
                 }
                 if let def::Token::EndOfFile = token.token {
@@ -33,8 +34,8 @@ fn main() {
                 }
                 tokens.push(token);
             }
-            println!("here");
-            println!("{:?}", parse::make_tree(tokens));
+            let expression_ref = parse::make_tree(&mut node_pool, tokens);
+            parse::print_node(&node_pool, expression_ref, 0);
         },
         Err(e) => {
             println!("{}", e);

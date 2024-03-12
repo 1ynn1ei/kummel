@@ -1,15 +1,15 @@
 use super::pattern;
 
 #[derive(Debug)]
-pub struct PositionalToken<'a> {
+pub struct PositionalToken {
     pub line: usize,
     pub col: usize,
     pub length: usize,
-    pub token: Token<'a>,
+    pub token: Token,
 }
 
-impl<'a> PositionalToken<'a> {
-    pub fn new(line: usize, col: usize, length: usize, token: Token<'a>) -> Self {
+impl PositionalToken {
+    pub fn new(line: usize, col: usize, length: usize, token: Token) -> Self {
         Self {
             line, col, length, token
         }
@@ -17,40 +17,17 @@ impl<'a> PositionalToken<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Token<'a> {
+pub enum Token {
     And,
     Apply,
     Arguments,
-    // Assignment,
-    // AssignmentAdd,
-    // AssignmentBitwiseAnd,
-    // AssignmentBitwiseOr,
     LineTerminator,
-    // AssignmentBitwiseXor,
-    // AssignmentDivide,
-    // AssignmentExponate,
-    // AssignmentLeftShift,
-    // AssignmentLogicalAnd,
-    // AssignmentLogicalOr,
-    // AssignmentMultiply,
-    // AssignmentNullishCoalesce,
-    // AssignmentRemainder,
-    // AssignmentRightShift,
-    // AssignmentSubtract,
-    // AssignmentUnsignedRightShift,
     Asterisk,
-    // BitwiseAnd,
-    // BitwiseLeftShift,
-    // BitwiseOr,
-    // BitwiseRightShift,
-    // BitwiseUnsignedRightShift,
-    // BitwiseXor,
-    // Break,
     Call,
     Colon,
     Comma,
-    Comment(&'a str),
-    Punctuator(&'a str),
+    Comment(String),
+    Punctuator(String),
     Const,
     Emit,
     EndOfFile,
@@ -59,20 +36,16 @@ pub enum Token<'a> {
     For,
     ForwardSlash,
     Function,
-    // Inequality,
     LeftBracket,
     LeftCarat,
     LeftCurly,
     LeftParen,
     Length,
     Let,
-    Identifier(&'a str),
-    StringLiteral(&'a str),
-    Numeric(&'a str),
-    // LogicalAnd,
-    // LogicalOr,
+    Identifier(String),
+    StringLiteral(String),
+    Numeric(String),
     Minus,
-    // NullishCoalesce,
     Period,
     Pipe,
     Plus,
@@ -86,17 +59,15 @@ pub enum Token<'a> {
     Semicolon,
     Slice,
     Splice,
-    // Spread,
     StrictEquality,
     StrictInequality,
     This,
     Unknown(u8),
     Var,
-    // Yield,
     WhiteSpace,
 }
 
-impl<'a> From<u8> for Token<'a> {
+impl From<u8> for Token {
     fn from(c: u8) -> Self {
         match c {
             b'&' => Token::And,
@@ -124,8 +95,8 @@ impl<'a> From<u8> for Token<'a> {
     }
 }
 
-impl<'a> From<&'a str> for Token<'a> {
-    fn from(word: &'a str) -> Self {
+impl From<&str> for Token {
+    fn from(word: &str) -> Self {
         match word {
             "apply" => Token::Apply,
             "arguments" => Token::Arguments,
@@ -148,9 +119,9 @@ impl<'a> From<&'a str> for Token<'a> {
             _ => {
                 let str_check = word.as_bytes();
                 if pattern::is_numeric(&str_check[0]) {
-                    Token::Numeric(word)
+                    Token::Numeric(word.to_string())
                 } else if pattern::is_literal(&str_check[0]) {
-                    Token::StringLiteral(word)
+                    Token::StringLiteral(word.to_string())
                 } else {
                     Token::from(str_check[0])
                 }

@@ -1,14 +1,14 @@
 use crate::def::pattern;
 
-pub struct Stream<'a> {
-    pub data: &'a Vec<u8>,
+pub struct Stream {
+    pub data: Vec<u8>,
     idx: usize,
     pub col: usize,
     pub line: usize,
 }
 
-impl<'a> Stream<'a> {
-    pub fn new(data: &'a Vec<u8>) -> Self {
+impl Stream {
+    pub fn new(data: Vec<u8>) -> Self {
         Stream {
             data,
             idx: 0,

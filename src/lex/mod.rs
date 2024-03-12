@@ -6,7 +6,7 @@ use crate::def::Token;
 use crate::def::StringType;
 use crate::def::PositionalToken;
 
-pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
+pub fn generate_token(stream: &mut Stream) -> PositionalToken {
     let line = stream.line;
     let col = stream.col;
     if stream.is_eof() {
@@ -18,7 +18,6 @@ pub fn generate_token<'s>(stream: &'s mut Stream) -> PositionalToken<'s> {
         }
     } else {
         let symbol = stream.current();
-        println!("[LEXING SYMBOL: {:?}]", std::str::from_utf8(&[symbol]).unwrap());
         let token = match symbol {
             b'a'..=b'z' | b'A'..=b'Z' => rule::identifier_name(stream),
             b'0'..=b'9' => rule::numeric_literal(stream),

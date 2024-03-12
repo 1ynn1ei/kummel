@@ -70,7 +70,13 @@ pub fn print_node(
     let node = node_pool.get(*cur_ref).unwrap();
     match node {
         AstNode::Program { body } => {
-            todo!()
+            let header = ident_string("Program: ", ident);
+            let body_str = body
+                .iter()
+                .fold("".to_string(), |acc, next| {
+                    acc + &print_node(node_pool, next, ident + 1) + "\n"
+                });
+            format!("{header}\n{body_str}")
         },
         AstNode::Literal { value } => {
             let header = ident_string("Literal: ", ident);
@@ -106,10 +112,13 @@ pub fn make_tree(
     let mut iter = iter
         .iter()
         .peekable();
-    let mut last_ref = node_pool.add(AstNode::Program {
-        body: Vec::new()
-    });
-    expression(node_pool, &mut iter)
+    let mut expressions_or_declarations = vec![
+        expression(node_pool, &mut iter)
+    ];
+    let mut program = AstNode::Program {
+        body: expressions_or_declarations
+    };
+    node_pool.add(program)
 }
 
 fn expression(

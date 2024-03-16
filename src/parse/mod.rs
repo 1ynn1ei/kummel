@@ -1,9 +1,6 @@
 #![allow(dead_code, unused)]
-/*
- * we want to be able to turn
- * 5 + 8 / 3
- * into a proper tree.
- */
+mod printer;
+pub use printer::print_node;
 
 use crate::arena::Arena;
 use crate::arena::ArenaRef;
@@ -42,6 +39,18 @@ pub enum AstNode {
     Grouping {
         expression: ArenaRef
     },
+    IfStatement {
+        test: ArenaRef,
+        consequent: ArenaRef,
+        alternative: Option<ArenaRef>
+    },
+    ExpressionStatement {
+        expression: ArenaRef,
+        semicolon: bool
+    },
+    BlockStatement {
+        body: Vec<ArenaRef>
+    },
     BinaryExpression { 
         lhs: ArenaRef,
         rhs: ArenaRef,
@@ -52,54 +61,14 @@ pub enum AstNode {
     }
 }
 
-
-fn ident_string(old_string: &str, ident: usize) -> String {
-    let mut string = String::new();
-    for i in 0..ident {
-        string.push(' ');
-        string.push(' ');
+fn walk_if_match(iter: &mut TokenIter, token_match: Token) -> Option<()> {
+    if let Some(token) = iter.peek() {
+        if token.token == token_match {
+            iter.next();
+            return Some(())
+        }
     }
-    format!("{string}{old_string}")
-}
-
-pub fn print_node(
-    node_pool: &Arena<AstNode>,
-    cur_ref: &ArenaRef,
-    ident: usize,
-    ) -> String {
-    let node = node_pool.get(*cur_ref).unwrap();
-    match node {
-        AstNode::Program { body } => {
-            let header = ident_string("Program: ", ident);
-            let body_str = body
-                .iter()
-                .fold("".to_string(), |acc, next| {
-                    acc + &print_node(node_pool, next, ident + 1) + "\n"
-                });
-            format!("{header}\n{body_str}")
-        },
-        AstNode::Literal { value } => {
-            let header = ident_string("Literal: ", ident);
-            let value_str = ident_string(
-                value.to_string().as_str(),
-                ident + 1);
-            format!("{header}\n{value_str}")
-        },
-        AstNode::BinaryExpression { lhs, rhs, operator } => {
-            let header = ident_string("BinaryExpression: ",ident);
-            let lhs = print_node(node_pool, lhs, ident + 1);
-            let rhs = print_node(node_pool, rhs, ident + 1);
-            let operator_str = ident_string("Operator: ", ident + 1);
-
-            format!("{header}\n{lhs}\n{rhs}\n{operator_str}{operator}")
-        },
-        AstNode::UnaryExpression { expression } => {
-            let header = ident_string("UnaryExpression: ",ident);
-            let expression = print_node(node_pool, expression, ident + 1);
-            format!("{header}\n{expression}")
-        },
-        _ => todo!()
-    }
+    None
 }
 
 pub fn make_tree(
@@ -107,18 +76,92 @@ pub fn make_tree(
     tokens: Vec<PositionalToken>) -> ArenaRef {
     let mut iter = tokens
         .iter()
-        .filter(|token| !matches!(token.token, Token::WhiteSpace))
+        .filter(|token| !matches!(token.token, Token::WhiteSpace | Token::LineTerminator))
         .collect::<Vec<_>>();
     let mut iter = iter
         .iter()
         .peekable();
-    let mut expressions_or_declarations = vec![
-        expression(node_pool, &mut iter)
+    let mut statements_or_declarations = vec![
+        statement(node_pool, &mut iter).unwrap()
     ];
     let mut program = AstNode::Program {
-        body: expressions_or_declarations
+        body: statements_or_declarations 
     };
     node_pool.add(program)
+}
+
+fn statement(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> Option<ArenaRef> {
+    if let Some(token) = iter.peek() {
+        match &token.token {
+            Token::Identifier(identifier) => {
+                if identifier == "if" {
+                    iter.next();
+                    if_statement(node_pool, iter)
+                } else {
+                    todo!()
+                }
+            },
+            Token::Punctuator(punctuation) => {
+                if punctuation == "{" {
+                    iter.next();
+                    block_statement(node_pool, iter)
+                } else if punctuation == "}" {
+                    // the statement is empty here?
+                    None
+                }else {
+                    println!("{:?}", punctuation);
+                    todo!()
+                }
+            },
+            _ => Some(expression_statement(node_pool, iter))
+        }
+    } else {
+        todo!()
+    }
+}
+
+fn block_statement(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> Option<ArenaRef> { 
+    let statement = statement(node_pool, iter);
+    let mut body = vec![];
+    if let Some(statement_ref) = statement {
+            walk_if_match(iter, Token::Punctuator(String::from("}")))?;
+            body.push(statement_ref);
+    }
+    Some(node_pool.add(AstNode::BlockStatement { body }))
+}
+
+fn if_statement(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> Option<ArenaRef> { 
+    walk_if_match(iter, Token::LeftParen)?;
+    let expression = expression(node_pool, iter);
+    walk_if_match(iter, Token::RightParen)?;
+    let statement = statement(node_pool, iter)?;
+    Some(node_pool.add(AstNode::IfStatement {
+        test: expression,
+        consequent: statement,
+        alternative: None
+    }))
+}
+
+fn expression_statement(
+    node_pool: &mut Arena<AstNode>,
+    iter: &mut TokenIter) -> ArenaRef {
+    let expression = expression(node_pool, iter);
+    let mut semicolon = false;
+    if let Some(token) = iter.peek() {
+        if token.token == Token::Punctuator(String::from(";")) {
+            semicolon = true;
+        }
+    }
+    node_pool.add(AstNode::ExpressionStatement {
+        expression,
+        semicolon
+    })
 }
 
 fn expression(
@@ -195,29 +238,9 @@ fn literal(
             Token::Numeric(number) => AstNode::Literal {
                 value: number.to_string().parse::<u64>().unwrap(),
             },
-            _ => todo!()
+            t => { println!("{:?}", t); todo!() }
         };
         return node_pool.add(node);
     }
     todo!()
-}
-
-pub fn test_expression_evaluator() {
-    let mut node_pool = Arena::<AstNode>::default();
-    let val_5_idx = node_pool.add(AstNode::Literal { value: 5 });
-    let val_8_idx = node_pool.add(AstNode::Literal { value: 8 });
-    let val_3_idx = node_pool.add(AstNode::Literal { value: 3 });
-    let inner_expression_idx = node_pool.add(
-        AstNode::BinaryExpression {
-            lhs: val_8_idx,
-            rhs: val_3_idx,
-            operator: Operator::Division 
-        });
-   let outer_expression_idx = node_pool.add(
-       AstNode::BinaryExpression {
-           lhs: val_5_idx,
-           rhs: inner_expression_idx,
-           operator: Operator::Addition
-       });
-
 }

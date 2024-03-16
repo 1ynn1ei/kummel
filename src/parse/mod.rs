@@ -1,9 +1,4 @@
 #![allow(dead_code, unused)]
-/*
- * we want to be able to turn
- * 5 + 8 / 3
- * into a proper tree.
- */
 
 use crate::arena::Arena;
 use crate::arena::ArenaRef;

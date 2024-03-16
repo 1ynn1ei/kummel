@@ -201,23 +201,3 @@ fn literal(
     }
     todo!()
 }
-
-pub fn test_expression_evaluator() {
-    let mut node_pool = Arena::<AstNode>::default();
-    let val_5_idx = node_pool.add(AstNode::Literal { value: 5 });
-    let val_8_idx = node_pool.add(AstNode::Literal { value: 8 });
-    let val_3_idx = node_pool.add(AstNode::Literal { value: 3 });
-    let inner_expression_idx = node_pool.add(
-        AstNode::BinaryExpression {
-            lhs: val_8_idx,
-            rhs: val_3_idx,
-            operator: Operator::Division 
-        });
-   let outer_expression_idx = node_pool.add(
-       AstNode::BinaryExpression {
-           lhs: val_5_idx,
-           rhs: inner_expression_idx,
-           operator: Operator::Addition
-       });
-
-}

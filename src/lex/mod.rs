@@ -1,4 +1,4 @@
-mod rule;
+mod grammar;
 mod assist;
 
 use crate::stream::Stream;
@@ -19,15 +19,15 @@ pub fn generate_token(stream: &mut Stream) -> PositionalToken {
     } else {
         let symbol = stream.current();
         let token = match symbol {
-            b'a'..=b'z' | b'A'..=b'Z' => rule::identifier_name(stream),
-            b'0'..=b'9' => rule::numeric_literal(stream),
-            b'"' => rule::string_literal(
+            b'a'..=b'z' | b'A'..=b'Z' => grammar::identifier_name(stream),
+            b'0'..=b'9' => grammar::numeric_literal(stream),
+            b'"' => grammar::string_literal(
                 stream, StringType::DoubleQuoted 
                 ),
-            b'\'' => rule::string_literal(
+            b'\'' => grammar::string_literal(
                 stream, StringType::SingleQuoted 
                 ),
-            b'/' => rule::potential_comment(stream),
+            b'/' => grammar::potential_comment(stream),
             b'(' => { stream.step(); Token::LeftParen },
             b')' => { stream.step(); Token::RightParen },
             b'!'|
@@ -49,7 +49,7 @@ pub fn generate_token(stream: &mut Stream) -> PositionalToken {
             b'{'|
             b'|'|
             b'}'|
-            b'~' => rule::punctuator(stream),
+            b'~' => grammar::punctuator(stream),
             b' ' => {
                 stream.step();
                 Token::WhiteSpace
